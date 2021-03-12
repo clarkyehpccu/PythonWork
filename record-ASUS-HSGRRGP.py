@@ -4,6 +4,7 @@ Created on Thu Nov 14 16:01:45 2019
 
 @author: clark
 """
+import os
 import sys
 from tkinter import *
 import myDB
@@ -20,7 +21,7 @@ def getAllData():
     
     datalist.delete(0,END)
     for idx, item in enumerate(myset, 0):
-        print(type(item))
+        #print(type(item))
         datalist.insert(END, item)
 def getitem(evt):
     selecteditem = datalist.get(datalist.curselection()[0])
@@ -68,22 +69,32 @@ def preparecourseList():
 def getSexValue():
     print("sex:",  varSex.get() )
 
-def redirect_to_file(text):
-    original = sys.stdout
-    sys.stdout = open('/path/to/redirect.txt', 'w')
-    print('This is your redirected text:')
-    print(text)
-    sys.stdout = original
+#def redirect_to_file(text):
+#    original = sys.stdout
+#    sys.stdout = open('main.py', 'w')
+#    print('This is your redirected text:')
+#    print(text)
+#    sys.stdout = original
  
-    print('This string goes to stdout, NOT the file!')
-#if __name__ != '__main__':
-#   redirect_to_file('Back to main')    
-#print(__name__)    
+#    print('This string goes to stdout, NOT the file!')
+
+
+if __name__ == '__main__':
+   import tkinter.filedialog
+   #print(__name__)
+   os.system('main.py') 
+   sys.exit(0) #離開此程式
+   #pyexec = sys.executable
+   #PathPy = tkinter.filedialog.askopenfilename(title="Open a file",filetypes=[('PYTHON file','.py')])
+   #os.system('%s %s' % (sys.executable, 'main.py'))
+   #sys.exit(0)
+ 
 winr = Tk()
 winr.geometry("600x520")
 winr.title('成績資料維護畫面')
 winr.config(background="lightyellow")
 #-------
+
        
 queryStd = Button(winr)
 queryStd.config(text="全部學生", bg="gray", fg="white", width=10, height=2, font="標楷體14", command=getAllData)

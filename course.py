@@ -1,95 +1,113 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Dec 16 18:41:21 2020
+Created on Thu Nov 14 16:01:45 2019
 
-@author: Administrator
+@author: clark
 """
-
+import sys
 from tkinter import *
-import sqlite3
-def execSQLcommand(sqlstr):
-    global myConn
-    global myCursor
-    try:
-      myCursor = myConn.execute(sqlstr)
-      myConn.commit()
-      print("指令已成功執行:" + sqlstr)
-      return myCursor
-    except:
-      print("指令有誤:", sqlstr)
-myConn = sqlite3.connect("student.db")
-myCursor = myConn.cursor()
+import myDB
+db = myDB.DBclass("student.db")
 
+def getAllData():
+    sqlstr = " select course_id, course_name, credit "
+    sqlstr += "  from course "
+    
+    #myset = list()
+    myset = db.getSQLresult(sqlstr)
+    datalist.delete(0,END)
+    for idx, item in enumerate(myset, 0):
+        #datalist.insert(END,"{0}-{1}-{2}".format(item[0],item[1], item[2]))
+        datalist.insert(END, item)
+def getitem(evt):
+    selecteditem = datalist.get(datalist.curselection()[0])
+    #selectedlist = selecteditem.split('-')
+    #=== std_id ===
+    course_id = selecteditem[0]
+    course_name = selecteditem[1]
+    credit = selecteditem[2]
+    
+    ecourse_id.delete(0,END)
+    ecourse_name.delete(0,END)
+    ecredit.delete(0,END)
+    ecourse_id.insert(END, course_id)
+    ecourse_name.insert(END, course_name)
+    ecredit.insert(END,credit)
+    
+    
 win = Tk()
-win.geometry('500x500')
-lblcourse_id = Label(win, text='Course_id')
-lblcourse_id.grid(row=0, column=0)
-etycourse_id=Entry(win)
-etycourse_id.grid(row=0, column=1)
-
-lblcourse_name = Label(win, text='Course_Name')
-lblcourse_name.grid(row=1, column=0)
-etycourse_name=Entry(win)
-etycourse_name.grid(row=1, column=1)
-
-lblcredit = Label(win, text='Course_Name')
-lblcredit.grid(row=2, column=0)
-etycredit=Entry(win)
-etycredit.grid(row=2, column=1)
-def  qo(instr):
-     return "'" + instr +"'"
-def getAll():
-    sqlstr = "select * from course "
-    listx = execSQLcommand(sqlstr).fetchall()
-    resultList.delete(0, END)
-    for item in listx:
-        resultList.insert(0, item)
-def doInsert():
-    sqlstr = "insert into course(course_id, course_name, credit)"
-    sqlstr += "values(" + qo(etycourse_id.get()) + ","
-    sqlstr +=  qo(etycourse_name.get()) + ","
-    sqlstr +=  etycredit.get() + ")"
-    execSQLcommand(sqlstr)
-    getAll()
-def doUpdate():
-    sqlstr = " update course set"
-    sqlstr += " course_name = " + qo(etycourse_name.get())
-    sqlstr += ", credit = " + etycredit.get()
-    sqlstr += " where course_id = " + qo(etycourse_id.get())
-    execSQLcommand(sqlstr)
-    getAll()
-def doDelete():
-    sqlstr = " delete from course"
-    sqlstr += " where course_id = " + qo(etycourse_id.get())
-    execSQLcommand(sqlstr)
-    getAll()
-btnInsert = Button(win, text='Insert', fg='blue', command=doInsert)
-btnInsert.grid(row=0,column=2, sticky=W+E)
-btnUpdate = Button(win, text='Update', fg='blue', command=doUpdate)
-btnUpdate.grid(row=1,column=2, sticky=W+E)
-btnDelete = Button(win, text='Delete', fg='blue', command=doDelete)
-btnDelete.grid(row=2,column=2, sticky=W+E)
-
-def onselect(evt):
-    idx = resultList.curselection()[0]
-    selecteditem = resultList.get(idx) #tuple selected
-    print("點選內容", selecteditem)
+win.geometry("600x520")
+win.title('課程資料維護畫面')
+win.config(background="lightyellow")
+#-------
+   
     
-    etycourse_id.delete(0, END);  
-    etycourse_id.insert(0, selecteditem[0] )
 
-    etycourse_name.delete(0, END); 
-    etycourse_name.insert(0, selecteditem[1] )
     
-    etycredit.delete(0, END); 
-    etycredit.insert(0, selecteditem[2] )
+queryAll = Button(win)
+queryAll.config(text="全部資料", bg="gray", fg="white", width=10, height=2, font="標楷體14", command=getAllData)
+queryAll.grid(row=0, column=0, stick=W)
+#--------
+datalist = Listbox(win)
+datalist.bind('<<ListboxSelect>>', getitem)
+datalist.config(width=80, height=15)
+datalist.grid(row=1, column=0, columnspan=4)
 
+#------
+myScrollbar = Scrollbar(win)
+myScrollbar.grid(row=1, column=4, stick=N+S)
+myScrollbar.config(command=datalist.yview)
+#====================================================
+#課號--------------------------
+lcourse_id = Label(win, text="Course_Id")
+lcourse_id.grid(row=2, column=0)
+ecourse_id = Entry(win)
+ecourse_id.grid(row=2, column=1, stick=W+E)
+#課名----------------------------
+lcourse_name = Label(win, text="Std Name")
+lcourse_name.grid(row=2, column=2)
+ecourse_name = Entry(win)
+ecourse_name.grid(row=2, column=3, stick=W+E)
+#---學分----
+lcredit = Label(win, text="學分")
+lcredit.grid(row=4, column=0)
+ecredit = Entry(win)
+ecredit.grid(row=4, column=1, stick=W+E)
 
-resultList = Listbox(win)
-resultList.grid(row=3, column=0, columnspan=3, sticky=W+E)
-resultList.bind('<<ListboxSelect>>', onselect)
+#=====================
+opFrame = Frame(win)
+opFrame.grid(row=6, column=0, columnspan=4, stick=W+E)
+#
+def InsertCourse():
+    sqlstr = " insert into course (course_Id, course_Name, credit)values("
+    sqlstr +=db.Qo(ecourse_id.get()) + ","
+    sqlstr +=db.Qo(ecourse_name.get()) + ","
+    sqlstr += ecredit.get() + ")"
+    db.execSQLcommand(sqlstr)
+    getAllData()
+    
+opInsert = Button(opFrame)
+opInsert.config(text="新增", bg="gray", fg="blue", width=10, height=2, font="標楷體14", command=InsertCourse)
+opInsert.grid(row=0, column=0, stick=W+E)
+def UpdateCourse():
+    sqlstr = " update course set " # (Std_Id, Std_Name, sex, dep_id, Birth_Place, Birthday, Religion)values("
+    sqlstr += "course_name = " + db.Qo(ecourse_name.get()) + ","
+    sqlstr += "credit = " +  ecredit.get() 
+    sqlstr += " where course_id = " +db.Qo(ecourse_id.get())
+    db.execSQLcommand(sqlstr)
+    getAllData()
+opUpdate = Button(opFrame)
+opUpdate.config(text="修改", bg="gray", fg="blue", width=10, height=2, font="標楷體14", command=UpdateCourse)
+opUpdate.grid(row=0, column=1, stick=W+E)
+#
+def DeleteCourse():
+    sqlstr = "delete from course where course_id = " +db.Qo(ecourse_id.get())
+    db.execSQLcommand(sqlstr)
+    getAllData()
 
-btnSelectAll = Button(win, text='Query', command=getAll)
-btnSelectAll.grid(row=4, column=0, columnspan=3, sticky=W+E)
+opDelete = Button(opFrame)
+opDelete.config(text="刪除", bg="gray", fg="blue", width=10, height=2, font="標楷體14", command=DeleteCourse)
+opDelete.grid(row=0, column=2, stick=W+E)
 
-win.mainloop()
+import test
+win.mainloop() 
